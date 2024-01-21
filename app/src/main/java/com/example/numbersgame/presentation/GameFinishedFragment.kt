@@ -36,19 +36,61 @@ class GameFinishedFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupClickListeners()
+        bindViews()
 
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    retryGame()
-                }
+    }
 
-            })
-
+    private fun setupClickListeners() {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                retryGame()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
         binding.buttonRetry.setOnClickListener {
             retryGame()
         }
     }
+
+    private fun bindViews() {
+        with(binding) {
+            emojiResult.setImageResource(getSmileResId())
+            tvRequiredAnswers.text = String.format(
+                getString(R.string.required_score),
+                result.gameSettings.minCountOfRightAnswers
+            )
+            tvScoreAnswers.text = String.format(
+                getString(R.string.score_answers),
+                result.countOfRightAnswers
+            )
+            tvRequiredPercentage.text = String.format(
+                getString(R.string.required_percentage),
+                result.gameSettings.minPercentOfRightAnswers
+            )
+            tvScorePercentage.text = String.format(
+                getString(R.string.score_percentage),
+                getPercentOfRightAnswer()
+            )
+        }
+    }
+
+    private fun getSmileResId(): Int {
+        return if (result.winner) {
+            R.drawable.ic_smile
+        } else {
+            R.drawable.ic_sad
+        }
+    }
+
+    private fun getPercentOfRightAnswer() = with(result) {
+        if (countOfQuestion == 0) {
+            0
+        } else {
+            ((countOfRightAnswers / countOfQuestion.toDouble()) * 100).toInt()
+        }
+    }
+
 
     private fun retryGame() {
         requireActivity().supportFragmentManager.popBackStack(
